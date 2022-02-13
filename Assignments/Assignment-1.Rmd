@@ -1,30 +1,211 @@
 ---
 title: "Assignment-1"
 author: "Sai Vignesh Reddy Cholleti"
-date: "2/13/2022"
-output: html_document
+date: "02/10/2022"
+output:
+  html_document: 
+    toc: yes
+    number_sections: yes
+  html_notebook:
+    toc: yes
+    number_sections: yes
+editor_options:
+  chunk_output_type: inline
 ---
 
+
+<style type="text/css">
+
+div#TOC li {
+    list-style:none;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+h1.title {
+  font-size: 24px;
+  color: DarkRed;
+  text-align: center;
+}
+h4.author { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkRed;
+  text-align: center;
+}
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+  text-align: center;
+}
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 15px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+</style>
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+if (!require("tidyverse")) {
+   install.packages("tidyverse")
+   library(tidyverse)
+}
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("cowplot")) {
+   install.packages("cowplot")
+   library(cowplot)
+}
+if (!require("latex2exp")) {
+   install.packages("latex2exp")
+   library(latex2exp)
+}
+if (!require("plotly")) {
+   install.packages("plotly")
+   library(plotly)
+}
+if (!require("gapminder")) {
+   install.packages("gapminder")
+   library(gapminder)
+}
+if (!require("png")) {
+    install.packages("png")             # Install png package
+    library("png")
+}
+if (!require("RCurl")) {
+    install.packages("RCurl")             # Install RCurl package
+    library("RCurl")
+}
+if (!require("colourpicker")) {
+    install.packages("colourpicker")              
+    library("colourpicker")
+}
+if (!require("gganimate")) {
+    install.packages("gganimate")              
+    library("gganimate")
+}
+if (!require("gifski")) {
+    install.packages("gifski")              
+    library("gifski")
+}
+if (!require("magick")) {
+    install.packages("magick")              
+    library("magick")
+}
+if (!require("grDevices")) {
+    install.packages("grDevices")              
+    library("grDevices")
+}
+if (!require("jpeg")) {
+    install.packages("jpeg")              
+    library("jpeg")
+}
+# knitr::opts_knit$set(root.dir = "C:/Users/75CPENG/OneDrive - West Chester University of PA/Documents")
+# knitr::opts_knit$set(root.dir = "C:\\STA490\\w05")
+##
+knitr::opts_chunk$set(echo = TRUE,       
+                      warning = FALSE,   
+                      result = TRUE,   
+                      message = FALSE)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This R markdown file contains all the code and graphics required for the Assignment-1 of Data Visualization course.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+<li> Downloaded the penguins data set and then uploaded it to my Github data repository. </li>
+<li> Found an image of a penguin and uploaded the image to the Github repository. </li>
+
+Read the data set into R from the Github data repository directly.
+
+```{r}
+penguins <- read.csv(file = "https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/w02-penguins.csv")
 ```
 
-## Including Plots
+The scatter plot between the numerical variables *bill_length_mm* and *flipper_length_mm* from the *penguins* data set 
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+plot( penguins$flipper_length_mm, penguins$bill_length_mm,
+     xlab = "Bill length(mm)",
+     ylab = "Flipper length(mm)",
+     main = "Scatter Plot: Bill length vs Flipper length")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+The three different species of penguins from the dataset are: 
+<ol>
+<li> Adelie </li> 
+<li> Gentoo </li> 
+<li> Chinstrap </li> 
+</ol>
+The image below differentiates the three different species in our dataset.
+<img src= "https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Images/pen_3_cat.jpg">
+
+The numerical variables (*bill_length_mm* and *flipper_length_mm*) from the *penguins* data set are used to make a scatter plot and colored the points based on the species.\
+Modified the scatter plot by following the below instructions:
+<ul>
+<li> The point size should be proportional to body_mass_g of the corresponding penguin. </li>
+<li> insert the image of the penguin you uploaded to the Github repository to the scatter plot. </li>
+<li> add a legend to enhance the readability of your plot. </li>
+<li> make sure the axes of your plot are appropriately labeled. The title of plot should reflect the content in the plot. </li>
+</ul>
+
+
+```{r}
+
+pen.bill <- penguins$bill_length_mm
+pen.flipper <- penguins$flipper_length_mm
+
+plot( pen.flipper, pen.bill, type='n',
+     xlab = "Bill length(mm)",
+     ylab = "Flipper length(mm)",
+     main = "Scatter Plot: Bill length vs Flipper length")
+
+Adelie.id = which(penguins$species=="Adelie")
+Gentoo.id = which(penguins$species=="Gentoo")
+Chinstrap.id = which(penguins$species=="Chinstrap")
+size.bm <- penguins$body_mass_g
+
+col.code <- c(alpha("red",0.6), alpha("blue",0.6), alpha("green",0.6))
+img.url <- "http://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Images/PenguinMeasurements.png"
+temp <- tempfile()
+download.file(img.url, temp, mode = "wb", cacheOK = FALSE)
+img <- readPNG(temp)
+raster.img <- as.raster(img)
+
+points(pen.flipper[Adelie.id], pen.bill[Adelie.id], pch = 19, col = col.code[1], cex = size.bm[Adelie.id]/2700)
+points(pen.flipper[Gentoo.id], pen.bill[Gentoo.id], pch = 19, col = col.code[2], cex = size.bm[Gentoo.id]/2700)
+points(pen.flipper[Chinstrap.id], pen.bill[Chinstrap.id], pch = 19, col = col.code[3], cex = size.bm[Chinstrap.id]/2700)
+
+legend("topleft", c("Adelie","Gentoo","Chinstrap"), col=c("red","blue","green"), pch = 19)
+rasterImage(raster.img,218,32,232,47)
+
+```
+
+Finally,
+knitted the RMD to HTML format and uploaded the HTML file to my Github repository.
+
+
