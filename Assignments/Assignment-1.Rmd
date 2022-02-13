@@ -1,7 +1,7 @@
 ---
 title: "Assignment-1"
 author: "Sai Vignesh Reddy Cholleti"
-date: "02/10/2022"
+date: "02/11/2022"
 output:
   html_document: 
     toc: yes
@@ -133,9 +133,9 @@ knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE)
 ```
 
+# The Scatter plot
 
 This R markdown file contains all the code and graphics required for the Assignment-1 of Data Visualization course.
-
 
 <li> Downloaded the penguins data set and then uploaded it to my Github data repository. </li>
 <li> Found an image of a penguin and uploaded the image to the Github repository. </li>
@@ -146,14 +146,21 @@ Read the data set into R from the Github data repository directly.
 penguins <- read.csv(file = "https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/w02-penguins.csv")
 ```
 
-The scatter plot between the numerical variables *bill_length_mm* and *flipper_length_mm* from the *penguins* data set 
+## The base Scatter plot between Flipper length and Bill length
+
+The scatter plot between the numerical variables *bill_length_mm* and *flipper_length_mm* from the *penguins* data set with a regression line.
 
 ```{r}
 plot( penguins$flipper_length_mm, penguins$bill_length_mm,
-     xlab = "Bill length(mm)",
-     ylab = "Flipper length(mm)",
-     main = "Scatter Plot: Bill length vs Flipper length")
+     xlab = "Flipper length(mm)",
+     ylab = "Bill length(mm)",
+     main = "Scatter Plot: Flipper length vs Bill length",
+     sub = "Scatter plot between flipper length (in mm) and bill length (in mm) with regression line")
+model <- lm(penguins$bill_length_mm ~ penguins$flipper_length_mm, data = penguins)
+abline(model, lwd=2, col= "red")
 ```
+
+## The Scatter plot between Flipper length and Bill length with some necessary annotations
 
 The three different species of penguins from the dataset are: 
 <ol>
@@ -161,11 +168,14 @@ The three different species of penguins from the dataset are:
 <li> Gentoo </li> 
 <li> Chinstrap </li> 
 </ol>
-The image below differentiates the three different species in our dataset.
+
+The below image differentiates the three different species in our dataset.\
+\
 <img src= "https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Images/pen_3_cat.jpg">
+\
 
 The numerical variables (*bill_length_mm* and *flipper_length_mm*) from the *penguins* data set are used to make a scatter plot and colored the points based on the species.\
-Modified the scatter plot by following the below instructions:
+Also, modified the scatter plot by following the below instructions:
 <ul>
 <li> The point size should be proportional to body_mass_g of the corresponding penguin. </li>
 <li> insert the image of the penguin you uploaded to the Github repository to the scatter plot. </li>
@@ -180,16 +190,18 @@ pen.bill <- penguins$bill_length_mm
 pen.flipper <- penguins$flipper_length_mm
 
 plot( pen.flipper, pen.bill, type='n',
-     xlab = "Bill length(mm)",
-     ylab = "Flipper length(mm)",
-     main = "Scatter Plot: Bill length vs Flipper length")
+     xlab = "Flipper length(mm)",
+     ylab = "Bill length(mm)",
+     main = "Scatter Plot: Flipper length vs Bill length",
+     sub = "Enhanced Scatter plot between flipper length (in mm) and bill length (in mm) from penguins dataset")
 
 Adelie.id = which(penguins$species=="Adelie")
 Gentoo.id = which(penguins$species=="Gentoo")
 Chinstrap.id = which(penguins$species=="Chinstrap")
 size.bm <- penguins$body_mass_g
 
-col.code <- c(alpha("red",0.6), alpha("blue",0.6), alpha("green",0.6))
+col.code <- c(alpha("red",0.5), alpha("blue",0.5), alpha("cyan",0.6))
+
 img.url <- "http://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Images/PenguinMeasurements.png"
 temp <- tempfile()
 download.file(img.url, temp, mode = "wb", cacheOK = FALSE)
@@ -200,8 +212,9 @@ points(pen.flipper[Adelie.id], pen.bill[Adelie.id], pch = 19, col = col.code[1],
 points(pen.flipper[Gentoo.id], pen.bill[Gentoo.id], pch = 19, col = col.code[2], cex = size.bm[Gentoo.id]/2700)
 points(pen.flipper[Chinstrap.id], pen.bill[Chinstrap.id], pch = 19, col = col.code[3], cex = size.bm[Chinstrap.id]/2700)
 
-legend("topleft", c("Adelie","Gentoo","Chinstrap"), col=c("red","blue","green"), pch = 19)
+legend("topleft", c("Adelie","Gentoo","Chinstrap"), col=col.code, pch = 19)
 rasterImage(raster.img,218,32,232,47)
+text(200, 59, "The points size is proportional to 'body_mass_g'", col = "black", cex = 0.75)
 
 ```
 
