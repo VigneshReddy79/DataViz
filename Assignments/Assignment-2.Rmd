@@ -1,0 +1,327 @@
+---
+title: "Assignment-1"
+author: "Sai Vignesh Reddy Cholleti"
+date: "02/27/2022"
+output:
+  html_document: 
+    toc: yes
+    number_sections: yes
+  html_notebook:
+    toc: yes
+    number_sections: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+
+<style type="text/css">
+
+div#TOC li {
+    list-style:none;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+h1.title {
+  font-size: 24px;
+  color: DarkRed;
+  text-align: center;
+}
+h4.author { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkRed;
+  text-align: center;
+}
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+  text-align: center;
+}
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 15px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+</style>
+
+```{r setup, include=FALSE}
+if (!require("tidyverse")) {
+   install.packages("tidyverse")
+   library(tidyverse)
+}
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("cowplot")) {
+   install.packages("cowplot")
+   library(cowplot)
+}
+if (!require("latex2exp")) {
+   install.packages("latex2exp")
+   library(latex2exp)
+}
+if (!require("plotly")) {
+   install.packages("plotly")
+   library(plotly)
+}
+if (!require("gapminder")) {
+   install.packages("gapminder")
+   library(gapminder)
+}
+if (!require("png")) {
+    install.packages("png")             # Install png package
+    library("png")
+}
+if (!require("RCurl")) {
+    install.packages("RCurl")             # Install RCurl package
+    library("RCurl")
+}
+if (!require("colourpicker")) {
+    install.packages("colourpicker")              
+    library("colourpicker")
+}
+if (!require("gganimate")) {
+    install.packages("gganimate")              
+    library("gganimate")
+}
+if (!require("gifski")) {
+    install.packages("gifski")              
+    library("gifski")
+}
+if (!require("magick")) {
+    install.packages("magick")              
+    library("magick")
+}
+if (!require("grDevices")) {
+    install.packages("grDevices")              
+    library("grDevices")
+}
+if (!require("jpeg")) {
+    install.packages("jpeg")              
+    library("jpeg")
+}
+# knitr::opts_knit$set(root.dir = "C:/Users/75CPENG/OneDrive - West Chester University of PA/Documents")
+# knitr::opts_knit$set(root.dir = "C:\\STA490\\w05")
+##
+knitr::opts_chunk$set(echo = TRUE,       
+                      warning = FALSE,   
+                      result = TRUE,   
+                      message = FALSE)
+```
+
+# Scatter plots
+
+## The Scatter plot between Flipper length and Bill length with some necessary annotations
+
+The three different species of penguins from the dataset are: 
+<ol>
+<li> Adelie </li> 
+<li> Gentoo </li> 
+<li> Chinstrap </li> 
+</ol>
+
+The below image differentiates the three different species in our dataset.\
+\
+<img src= "https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Images/pen_3_cat.jpg">
+\
+
+The numerical variables (*bill_length_mm* and *flipper_length_mm*) from the *penguins* data set are used to make a scatter plot and colored the points based on the species.\
+Also, modified the scatter plot by following the below aspects:
+<ul>
+<li> Marks and channels: Changed point shape and color, modified size proportional to other variable. </li>
+<li> Legends and annotations (text and images): Changed the background color and position of legend, removed the border of legend, reduced the font size of text. </li>
+<li> Title and tick mark labels: Changed the color and font of Title, reduced the size and color of tick marks. </li>
+</ul>
+
+```{r}
+
+data.pen <- read.csv("../Datasets/w02-penguins.csv")
+
+pen.bill <- data.pen$bill_length_mm
+pen.flipper <- data.pen$flipper_length_mm
+
+plot( pen.flipper, pen.bill, type='n',
+     xlab = "Flipper length(mm)",
+     ylab = "Bill length(mm)",
+     font.lab = 2, 
+     col.axis = "black", col.axTicks = "black", tck = -0.03,
+     adj = 0.5, mgp = c(1.8,0.5,0), bty = "L",
+     main = "Scatter Plot: Flipper length vs Bill length", cex.main = 1.5, font.main = 2, col.main = "darkred",
+     sub = "Enhanced Scatter plot between flipper length (in mm) and bill length (in mm) from penguins dataset", cex.sub = 0.8, font.sub = 3)
+
+Adelie.id = which(data.pen$species=="Adelie")
+Gentoo.id = which(data.pen$species=="Gentoo")
+Chinstrap.id = which(data.pen$species=="Chinstrap")
+size.bm <- data.pen$body_mass_g
+col.code <- c(alpha("dodgerblue3",0.5), alpha("springgreen3",0.5), alpha("palevioletred3",0.6))
+
+img.url <- "http://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Images/PenguinMeasurements.png"
+temp <- tempfile()
+download.file(img.url, temp, mode = "wb", cacheOK = FALSE)
+img <- readPNG(temp)
+raster.img <- as.raster(img)
+
+points(pen.flipper[Adelie.id], pen.bill[Adelie.id], pch = 19, col = col.code[1], cex = size.bm[Adelie.id]/2700)
+points(pen.flipper[Gentoo.id], pen.bill[Gentoo.id], pch = 19, col = col.code[2], cex = size.bm[Gentoo.id]/2700)
+points(pen.flipper[Chinstrap.id], pen.bill[Chinstrap.id], pch = 19, col = col.code[3], cex = size.bm[Chinstrap.id]/2700)
+
+legend("topleft", c("Adelie","Gentoo","Chinstrap"), col=col.code, pch = 19,
+       bty = "o", cex = 1, bg = rgb(0.1,0,0, alpha = 0.1), box.col = "white", xpd = TRUE,
+       inset = 0.002)
+rasterImage(raster.img,219,31.5,234,46.5)
+text(198, 59, "*The point size is proportional to 'body_mass_g'", col = "black", cex = 0.7)
+
+```
+
+## Subsetting the penguin dataset using dplyr package
+
+Created a subset from the penguin data set that satisfies the following conditions:\
+<li>Deleted all records with at least one missing component</li>
+<li>Included Adelie penguins and Gentoo penguins from the Biscoe and Torgersen islands.</li>
+<li>Included only penguins with body_mass_g less than 5000 grams but more than 3500 grams.</li>
+<li>Rescaled body_mass_g by dividing 4000 and renamed it as BMI = body_mass_g / 4000.</li>
+<li>Excluded variables X(observation ID), sex, year, and body_mass_g from the above subset.</li>\
+
+```{r}
+
+final.pen <- data.pen %>%
+  drop_na() %>%
+  filter(species == "Adelie" | species == "Gentoo")  %>%
+  filter(island == "Torgersen" | island == "Biscoe")  %>%
+  filter(body_mass_g > 3500 & body_mass_g < 5000)  %>%
+  mutate(BMI = body_mass_g/4000) %>%
+  select(species, island, bill_length_mm, flipper_length_mm, bill_depth_mm, BMI)
+```
+
+## ggplot() theme
+
+The below code is the theme followed in ggplot() function to make a scatter plot between the variables flipper length and bill length of filtered data.
+
+```{r}
+
+myplot.theme <- function() {
+  theme(
+    # plot margins
+    plot.margin = margin(t = 50,  # Top margin
+                          r = 30,  # Right margin
+                          b = 30,  # Bottom margin
+                          l = 30), # Left margin
+    
+    ## ggplot titles
+    plot.title = element_text(face = "bold", 
+                              size = 16,
+                              family = "sans", 
+                              color = "darkred",
+                              hjust = 0.5,
+                              margin=margin(0,0,10,0)), # left(0),right(1)
+    plot.subtitle = element_text(face = "italic",
+                                 family = "sans",
+                                 hjust = 0.5),
+    
+    # color background
+    panel.background = element_rect(fill = "#f6f6f6"),
+    
+    # modify grid 
+    panel.grid.major.x = element_line(colour = 'white', 
+                                      linetype = 3, 
+                                      size = 0.5),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_line(colour = 'white', 
+                                       linetype = 3, 
+                                       size = 0.5),
+    panel.grid.minor.y = element_blank(),
+    
+    # modify line, text, title and ticks of axes
+    axis.line = element_line(color = "black"),
+    axis.text = element_text(colour = "black", 
+                             #face = "italic", 
+                             size = 12,
+                             family = "sans"
+                             ),
+    axis.title = element_text(colour = "black", 
+                              size = 12,
+                              family = "sans"
+                              ),
+    axis.ticks = element_line(colour = "black"),
+    
+    # legend position, size, title and text
+    legend.position = "right",
+    legend.key.size = unit(0.5, 'cm'),
+    legend.key.height = unit(0.5, 'cm'),
+    legend.key.width = unit(0.5, 'cm'),
+    legend.title = element_text(size=10),
+    legend.key = element_rect(fill = "white"),
+    legend.text = element_text(size=9)
+)
+}
+
+```
+
+## Creating a scatter plot using ggplot2 package
+
+The scatter plot between the variables flipper length and bill length on the resulting dataset after data subsetting.
+
+```{r}
+
+ggplot( data = final.pen, mapping = aes(x = flipper_length_mm, y = bill_length_mm, color = species, size = BMI)) +
+  geom_point( alpha =0.5) +
+  scale_color_manual(values=c("dodgerblue3", "springgreen3")) +
+  stat_smooth(method = lm, se=FALSE, size = 1) +
+  labs( x = "Flipper length", 
+        y = "Bill length",
+        title = "Relationship between Flipper and Bill lengths",
+        subtitle = "The scatter plot between Flipper length and Bill length from filtered data of penguins",
+        color = "Species:",
+        size = "BMI:") +
+  myplot.theme() +
+  annotate(geom="text", 
+                      x=215, 
+                      y=36, 
+                      label=paste("The distribution of Adelie is",
+                      "different from that of Gentoo", sep = "\n"),
+                      color="black",
+                      size = 3,
+                      hjust = 0.5)
+
+```
+
+<li>The variable flipper length and bill length of two species of penguins (Adelie and Gentoo) from islands Torgersen and Biscoe are compared in the above scatter plot. The Adelie species are colored blue and other specie Gentoo are colored green. The Adelie penguins have smaller flipper length and smaller bill length compared to Gentoo penguins. Also, On the whole, the Adelie penguins have smaller BMI than that of Gentoo penguins.</li>\
+
+<li>The relationship between the variables flipper length and bill length of Adelie penguins is moderately strong while Gentoo penguins have a weaker relationship.</li>
+<li>The variables for both species of penguins are positively associated which means as the flipper length increases, the bill length of that penguin tends to increase.</li>
+<li>The linear relationship between the variables flipper length and bill length is stronger in Adelie penguins than Gentoo penguins.</li>
+<li>There are more outliers in Adelie penguins than Gentoo penguins in the above plot.</li>
+<li>The distribution of the both species are mostly two different groups and doesn't have similar values.</li>
+<li>The points are wide spread out from the line in Gentoo penguins which means the variability explained by the line is small. when it comes to Adelie penguins, the points are closer to line and the variability can be explained better by the line.</li>\
+\
+
+
+
+
+
+
+
