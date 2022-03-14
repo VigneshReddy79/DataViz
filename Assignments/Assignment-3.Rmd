@@ -1,0 +1,286 @@
+---
+title: "Assignment-3"
+author: "Sai Vignesh Reddy Cholleti"
+date: "03/11/2022"
+output:
+  html_document: 
+    toc: yes
+    number_sections: yes
+  html_notebook:
+    toc: yes
+    number_sections: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+<style type="text/css">
+
+div#TOC li {
+    list-style:none;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+h1.title {
+  font-size: 24px;
+  color: DarkRed;
+  text-align: center;
+}
+h4.author { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkRed;
+  text-align: center;
+}
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+  text-align: center;
+}
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 15px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+</style>
+
+```{r setup, include=FALSE}
+if (!require("tidyverse")) {
+   install.packages("tidyverse")
+   library(tidyverse)
+}
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("cowplot")) {
+   install.packages("cowplot")
+   library(cowplot)
+}
+if (!require("latex2exp")) {
+   install.packages("latex2exp")
+   library(latex2exp)
+}
+if (!require("plotly")) {
+   install.packages("plotly")
+   library(plotly)
+}
+if (!require("gapminder")) {
+   install.packages("gapminder")
+   library(gapminder)
+}
+if (!require("png")) {
+    install.packages("png")             # Install png package
+    library("png")
+}
+if (!require("RCurl")) {
+    install.packages("RCurl")             # Install RCurl package
+    library("RCurl")
+}
+if (!require("colourpicker")) {
+    install.packages("colourpicker")              
+    library("colourpicker")
+}
+if (!require("gganimate")) {
+    install.packages("gganimate")              
+    library("gganimate")
+}
+if (!require("gifski")) {
+    install.packages("gifski")              
+    library("gifski")
+}
+if (!require("magick")) {
+    install.packages("magick")              
+    library("magick")
+}
+if (!require("grDevices")) {
+    install.packages("grDevices")              
+    library("grDevices")
+}
+if (!require("jpeg")) {
+    install.packages("jpeg")              
+    library("jpeg")
+}
+# knitr::opts_knit$set(root.dir = "C:/Users/75CPENG/OneDrive - West Chester University of PA/Documents")
+# knitr::opts_knit$set(root.dir = "C:\\STA490\\w05")
+##
+knitr::opts_chunk$set(echo = TRUE,       
+                      warning = FALSE,   
+                      result = TRUE,   
+                      message = FALSE)
+```
+
+```{r}
+income <- read.csv("D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/income_per_person.csv")
+pop <- read.csv("D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/population_total.csv")
+life <- read.csv("D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/life_expectancy_years.csv")
+countries <- read.csv("D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/countries_total.csv")
+
+```
+
+
+```{r}
+
+income.new <- income %>%
+  gather(key = "Year", value = "Income", -geo, na.rm=TRUE) %>%
+  mutate(Country = geo, Year = substr(Year,2,5)) %>%
+  select(-geo)
+
+life.new <- life %>%
+  gather(key = "Year", value = "Life", -geo, na.rm=TRUE) %>%
+  mutate(Country = geo, Year = substr(Year,2,5)) %>%
+  select(-geo)
+life.new
+
+pop.new <- pop %>%
+  gather(key = "Year", value = "pop", -geo, na.rm=TRUE) %>%
+  mutate(Country = geo, Year = substr(Year,2,5)) %>%
+  select(-geo)
+pop.new
+
+LifeExpIncom <- merge(income.new, life.new, by = c("Country","Year"))
+LifeIncomCoun <- merge(LifeExpIncom, countries, by.x = "Country", by.y = "name")
+LifeIncomCoun <- select(LifeIncomCoun, Year, Country, region, Income, Life)
+final.data <- merge(LifeIncomCoun, pop.new, by = c("Country","Year"))
+
+comp1 <- filter(final.data, Year == 2015)
+```
+
+
+```{r}
+library(plotly)
+
+
+plot_ly(
+  data = comp1,
+  x = ~Income,  # Horizontal axis 
+  y = ~Life,   # Vertical axis 
+  color = ~Country,  # must be a numeric factor
+  size = ~pop,
+  type = "scatter",
+  mode = "markers",
+  text = ~Country,
+  alpha = 0.6,
+  hovertemplate = paste("<b>Income: %{x:$,}</b>",
+                          "<br><b>Life: %{y:,}</b>",
+                          "<br><b>Population: %{marker.size:,.0f}</b>",
+                          '<br><b> %{text}</b>'))
+
+
+
+```
+
+
+
+
+
+```{r}
+library(gapminder)
+library(ggplot2)
+library(gganimate)
+
+rm(countries, income,income.new, life, life.new,LifeExpIncom,LifeIncomCoun,pop, pop.new)
+final.data$Year <- as.numeric(final.data$Year)
+comp2 <- filter(final.data, Year >= 1950 & Year <= 2018)
+
+p <- ggplot(data = comp2, mapping = aes(x = Income,
+                                             y = Life,
+                                             size = pop,
+                                             color = Country
+                                             )) +
+  geom_point(alpha = 0.5, show.legend = FALSE) +
+  scale_color_viridis_d() +      # color pallets 
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  labs(title = 'Year: {frame_time}',
+       x = 'Income',
+       y = 'life expectancy') +
+  transition_time(as.integer(Year)) +
+  ease_aes('linear')
+
+animate(p, renderer = gifski_renderer(),
+          rewind = TRUE)
+
+
+
+```
+
+## comp3
+
+```{r}
+
+df <- read.csv("D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/POC.csv")
+df2 <- head(df,500)
+df3 <- sample_n(df, 500)
+# geo styling
+borders <- list(color = toRGB("red"))
+g <- list(      scope = 'usa',
+           projection = list(type = 'albers usa'),
+             showland = TRUE,
+            landcolor = toRGB("gray95"),
+         subunitcolor = toRGB("gray85"),
+         countrycolor = toRGB("Red"),
+         countrywidth = 2.5,
+         subunitwidth = 5.5
+       )
+###
+fig <- plot_geo(df3, x = ~xcoord, y = ~ycoord) %>% 
+  add_markers( text = ~paste(X, paste("State: ",STATE), paste("County: ",county),
+                             paste("Address: ",ADDRESS), paste("ZIP code: ",ZIPnew),
+                             #paste("Arrivals:", cnt), 
+                             sep = "<br>"),
+              color = ~description, 
+              symbol = "circle", 
+              size = ~ZIPPOC, 
+              hoverinfo = "text")   %>% 
+  colorbar(title = "Urban/Rural<br>2")  %>%
+  marker = list(line = borders) %>%
+  layout( title = 'Urban/Rural Gas Stations in the US', 
+          geo = g )
+
+fig
+
+```
+
+
+```{r}
+
+df.split <- split(df, df$STATE)
+df.list <- lapply(df.split, function(x) {
+                   y <- x[sample(nrow(x), 10), ]
+                   return(y)
+                })
+result <- unsplit(df.list, f = df$STATE, drop = TRUE)
+
+
+```
+
+
+
+
+
+
+
+
