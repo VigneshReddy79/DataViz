@@ -1,7 +1,7 @@
 ---
 title: "Assignment-3"
 author: "Sai Vignesh Reddy Cholleti"
-date: "03/11/2022"
+date: "03/16/2022"
 output:
   html_document: 
     toc: yes
@@ -132,155 +132,189 @@ knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE)
 ```
 
+# Data Management
+
+## Reshaping and Merging the datasets
+
+<li> Read four datasets from github repository into four objects named *income*, *popul*, *life* and *countries*. </li>
+<li> Reshaped the dataset *income* into a longitudinal dataset which contains only three columns country, year and income by using *gather* and *mutate* functions from *dplyr* package. </li>
+<li> In the same manner, reshaped the datasets *popul* and *life* into longitudinal data such that the resulting datasets contains only three respective columns. </li>
+<li> Then, merged the datasets *life* and *income* into a new dataset *LifeExpIncom* </li>
+<li> Merged the above dataset *LifeExpIncom* with dataset *countries* so that the final data set has information about income, life expectancy, and country region.</li>
+<li> Finally, Merged the previous resulting data set with dataset *popul* so that the final data set has information about income, life expectancy, population size, and country region, and named it as *InLEPopCtry*</li>
+<li> Applied *filter()* function, to select the data for the year 2015 inorder to create the interactive scatter plot for the year 2015. </li>
+<br>
+
 ```{r}
-income <- read.csv("D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/income_per_person.csv")
-pop <- read.csv("D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/population_total.csv")
-life <- read.csv("D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/life_expectancy_years.csv")
-countries <- read.csv("D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/countries_total.csv")
 
-```
-
-
-```{r}
+income <- read.csv("https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/income_per_person.csv")
+popul <- read.csv("https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/population_total.csv")
+life <- read.csv("https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/life_expectancy_years.csv")
+countries <- read.csv("https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/countries_total.csv")
 
 income.new <- income %>%
   gather(key = "Year", value = "Income", -geo, na.rm=TRUE) %>%
   mutate(Country = geo, Year = substr(Year,2,5)) %>%
   select(-geo)
+#head(income.new)
 
 life.new <- life %>%
   gather(key = "Year", value = "Life", -geo, na.rm=TRUE) %>%
   mutate(Country = geo, Year = substr(Year,2,5)) %>%
   select(-geo)
-life.new
+#head(life.new)
 
-pop.new <- pop %>%
-  gather(key = "Year", value = "pop", -geo, na.rm=TRUE) %>%
+popul.new <- popul %>%
+  gather(key = "Year", value = "population", -geo, na.rm=TRUE) %>%
   mutate(Country = geo, Year = substr(Year,2,5)) %>%
   select(-geo)
-pop.new
+#head(popul.new)
 
-LifeExpIncom <- merge(income.new, life.new, by = c("Country","Year"))
-LifeIncomCoun <- merge(LifeExpIncom, countries, by.x = "Country", by.y = "name")
+LifeExpIncom <- merge(income.new, life.new, by = c("Country","Year") , all.x = FALSE)
+LifeIncomCoun <- merge(LifeExpIncom, countries, by.x = "Country", by.y = "name", all.x = FALSE)
 LifeIncomCoun <- select(LifeIncomCoun, Year, Country, region, Income, Life)
-final.data <- merge(LifeIncomCoun, pop.new, by = c("Country","Year"))
+InLEPopCtry <- merge(LifeIncomCoun, popul.new, by = c("Country","Year"), all.x = FALSE)
 
-comp1 <- filter(final.data, Year == 2015)
+rm(countries, income, income.new, life, life.new, LifeExpIncom,LifeIncomCoun, popul, popul.new)
+df2015 <- filter(InLEPopCtry, Year == 2015)
 ```
+
+# Interactive Scatter plot
+
+<li> An Interactive scatter plot is created to show the association between the Avg Income and Life Expectancy for the year 2015. </li>
+<li> This scatter plot is created by using the *plot_ly* function from *plotly* package </li>
+<li> The instructions followed to construct the below interactive scatter plot are </li>
+<ol> <li> Set the point size to be proportional to the population size. </li>
+<li> Use different colors for different countries. </li>
+<li> Choose an appropriate transparency level so that overlapped points can be viewed. </li>
+<li> Choose an appropriate color to highlight the point boundary so that partially overlapped points can be easily distinguished. </li>
+<li> Included the country name and population size in the hover text. </li> </ol>
 
 
 ```{r}
-library(plotly)
 
+df2015 <- mutate(df2015, population_m = population/1000000)
 
-plot_ly(
-  data = comp1,
-  x = ~Income,  # Horizontal axis 
-  y = ~Life,   # Vertical axis 
-  color = ~Country,  # must be a numeric factor
-  size = ~pop,
-  type = "scatter",
-  mode = "markers",
-  text = ~Country,
-  alpha = 0.6,
-  hovertemplate = paste("<b>Income: %{x:$,}</b>",
-                          "<br><b>Life: %{y:,}</b>",
-                          "<br><b>Population: %{marker.size:,.0f}</b>",
-                          '<br><b> %{text}</b>'))
+fig1 <- plot_ly( data = df2015,
+                 x = ~Income,
+                 y = ~Life,
+                 marker = list(line = list(color = 'black',
+                                           width = 0.75)),
+                 color = ~Country,
+                 size = ~population_m,
+                 sizes = c(50,1000),
+                 type = "scatter",
+                 mode = "markers",
+                 alpha = 0.75,
+                 hoverinfo = 'text',
+                 text = paste("<br><b>Income: $</b>", df2015$Income,
+                              "<br><b>Life: </b>", df2015$Life,
+                              "<br><b>Population in millions: </b>", df2015$population_m,
+                              "<br><b>Country: </b>", df2015$Country ) ) %>%
+        layout( showlegend = FALSE,
+                plot_bgcolor ='#E2E2E2',
+                title = list( text = "<b>Relationship between Avg Income and Life Expectancy in 2015</b>",
+                              font = list( size = 20,
+                                           color = "darkred") ),
+                xaxis = list( title = "<b>Avg Income per person </b>($)",
+                              zerolinewidth = 1.5,
+                              gridcolor = 'white'),
+                yaxis = list( title = "<b>Life Expectancy </b>(years)",
+                              zerolinewidth = 1.5,
+                              gridcolor = 'white'),
+                margin = list( b = 15, l = 25, t = 85, r = 25) )
 
-
-
+fig1
 ```
 
+# Animated Scatter plot
 
-
-
-
-```{r}
-library(gapminder)
-library(ggplot2)
-library(gganimate)
-
-rm(countries, income,income.new, life, life.new,LifeExpIncom,LifeIncomCoun,pop, pop.new)
-final.data$Year <- as.numeric(final.data$Year)
-comp2 <- filter(final.data, Year >= 1950 & Year <= 2018)
-
-p <- ggplot(data = comp2, mapping = aes(x = Income,
-                                             y = Life,
-                                             size = pop,
-                                             color = Country
-                                             )) +
-  geom_point(alpha = 0.5, show.legend = FALSE) +
-  scale_color_viridis_d() +      # color pallets 
-  scale_size(range = c(2, 12)) +
-  scale_x_log10() +
-  labs(title = 'Year: {frame_time}',
-       x = 'Income',
-       y = 'life expectancy') +
-  transition_time(as.integer(Year)) +
-  ease_aes('linear')
-
-animate(p, renderer = gifski_renderer(),
-          rewind = TRUE)
-
-
-
-```
-
-## comp3
+<li> An Animated scatter plot is created to display the change in relationship between Avg income and life expectancy over the years. (considered the years from 1950 to 2018) </li>
+<li> This animated plot is created by using aspects/functions of *gganimate* and *ggplot* packages. Also, this animated plot is created by considering the below aspects. </li> 
+<ol> <li> Set the point size to be proportional to the population size </li>
+<li> Use different colors for different regions. </li>
+<li> Choose an appropriate transparency level so that overlapped points can be viewed. </li>
+<li> Choose an appropriate color to highlight the point boundary so that partially overlapped points can be easily distinguished.</li> </ol>
+<br>
 
 ```{r}
 
-df <- read.csv("D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/POC.csv")
-df2 <- head(df,500)
-df3 <- sample_n(df, 500)
-# geo styling
-borders <- list(color = toRGB("red"))
-g <- list(      scope = 'usa',
+InLEPopCtry$Year <- as.numeric(InLEPopCtry$Year)
+df50_18 <- filter(InLEPopCtry, Year >= 1950 & Year <= 2018)
+
+fig2 <- ggplot(data = df50_18, mapping = aes( x = Income,
+                                              y = Life,
+                                              size = population,
+                                              color = Country)) +
+        geom_point(alpha = 0.5, show.legend = FALSE) +
+        scale_color_viridis_d() + 
+        scale_size(range = c(2, 12)) +
+        scale_x_log10() +
+        scale_y_log10() +
+        labs( title = list( text = paste("Animated Scatter Plot between Avg Income and Life                                              Expectancy", "from 1950 to 2018", sep = "\n"),
+                            color = "darkred"),
+              subtitle = 'Year: {frame_time}',
+              x = "Avg Income ($)",
+              y = "Life expectancy (years)") +
+        transition_time(as.integer(Year)) +
+        ease_aes('linear')
+
+animate(fig2, renderer = gifski_renderer(), rewind = TRUE)
+anim_save("animated_plot.gif", fig2, path = "D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Images")
+```
+
+# Interactive Choropleth map
+
+<li> Firstly, read the data from github and assigned it to a object named *df* </li>
+<li> From the above dataset, a sample of 500 observations was randomly selected and assigned it to another object named *df2* </li>
+<li> Then using *plot_geo* function from *plotly* package, created the Choropleth map showing a random sample of 500 gas stations in the US. </li>
+<li> The information included in the hover: State, County, Address and the ZIP code of the gas station. </li> 
+<br>
+
+```{r}
+
+df <- read.csv("https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/Gas_stations_POC.csv")
+
+set.seed(71725)
+df_500 <- sample_n(df, 500)
+
+g <- list( scope = 'usa',
            projection = list(type = 'albers usa'),
-             showland = TRUE,
-            landcolor = toRGB("gray95"),
-         subunitcolor = toRGB("gray85"),
-         countrycolor = toRGB("Red"),
-         countrywidth = 2.5,
-         subunitwidth = 5.5
-       )
-###
-fig <- plot_geo(df3, x = ~xcoord, y = ~ycoord) %>% 
-  add_markers( text = ~paste(X, paste("State: ",STATE), paste("County: ",county),
-                             paste("Address: ",ADDRESS), paste("ZIP code: ",ZIPnew),
-                             #paste("Arrivals:", cnt), 
-                             sep = "<br>"),
-              color = ~description, 
-              symbol = "circle", 
-              size = ~ZIPPOC, 
-              hoverinfo = "text")   %>% 
-  colorbar(title = "Urban/Rural<br>2")  %>%
-  marker = list(line = borders) %>%
-  layout( title = 'Urban/Rural Gas Stations in the US', 
-          geo = g )
+           showland = TRUE,
+           landcolor = toRGB("gray95"),
+           subunitcolor = toRGB("gray85"),
+           countrycolor = toRGB("gray85"),
+           countrywidth = 0.5,
+           subunitwidth = 0.5 )
 
-fig
+l <- list( font = list( family = "sans-serif",
+                        size = 12,
+                        color = "#000"),
+           bgcolor = "#E2E2E2",
+           bordercolor = "#FFFFFF",
+           borderwidth = 2 )
 
+fig3 <- plot_geo( data = df_500, x = ~xcoord, y = ~ycoord) %>%
+        add_markers( text = ~paste("<br><b>State: </b>", STATE,
+                                   "<br><b>County: </b>", county,
+                                   "<br><b>Address: </b>", ADDRESS,
+                                   "<br><b>Zip code: </b>", ZIPnew),
+                     color = ~description,
+                     colors = c("springgreen3","dodgerblue3"),
+                     alpha = 0.5,
+                     symbol = "circle", 
+                     #marker = list( line = list( color = 'black', width = 0.5)),
+                     size = I(30),
+                     hoverinfo = "text") %>%
+        layout( title = list( text = "<b>500 Random Gas stations in the United States</b>",
+                              font = list( size = 20,
+                                           color = "darkred" )),
+                legend = l,
+                margin = list( b = 15, l = 25, t = 85, r = 25),
+                geo = g )
+
+fig3
 ```
-
-
-```{r}
-
-df.split <- split(df, df$STATE)
-df.list <- lapply(df.split, function(x) {
-                   y <- x[sample(nrow(x), 10), ]
-                   return(y)
-                })
-result <- unsplit(df.list, f = df$STATE, drop = TRUE)
-
-
-```
-
-
-
-
-
-
-
+<br>
+<br>
 
