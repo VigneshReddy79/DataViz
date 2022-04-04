@@ -172,7 +172,7 @@ saveRDS(election_fips, file="D:/OneDrive - West Chester University of PA/Documen
 
 ```
 
-# Choroleth map showing US Presidential Elections 2020 by county
+# Choropleth map showing US Presidential Elections 2020 by county
 
 ## Interactive Choropleth map using Plotly function
 
@@ -249,7 +249,6 @@ Using the Tableau, created the choropleth map as described in Part I of this ass
 <li>Embeded the map into RMarkdown using the IMG tag from directly tableau public server link(hence embeded it to the knitted HTML file).</li>
 <li>The link for the visualization created in Tableau public is: <a href="https://public.tableau.com/views/USpresidentialelections2020/Sheet1?:language=en-US&:display_count=n&:origin=viz_share_link" target="_blank">click here</a> </li>
 <br>
-<img src= "https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Images/US_presidential_elections_2020.png"> </img>
-#<img src= "https://public.tableau.com/static/images/US/USpresidentialelections2020/Sheet1/1.png"> </img>
+<img src= "https://public.tableau.com/static/images/US/USpresidentialelections2020/Sheet1/1.png"> </img>
 <br>
 <br>
