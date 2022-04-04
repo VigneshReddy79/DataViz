@@ -1,0 +1,255 @@
+---
+title: "Assignment-4"
+author: "Sai Vignesh Reddy Cholleti"
+date: "04/02/2022"
+output:
+  html_document: 
+    toc: yes
+    number_sections: yes
+  html_notebook:
+    toc: yes
+    number_sections: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+<style type="text/css">
+
+div#TOC li {
+    list-style:none;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+h1.title {
+  font-size: 24px;
+  color: DarkRed;
+  text-align: center;
+}
+h4.author { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkRed;
+  text-align: center;
+}
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+  text-align: center;
+}
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 15px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+</style>
+
+```{r setup, include=FALSE}
+if (!require("tidyverse")) {
+   install.packages("tidyverse")
+   library(tidyverse)
+}
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("cowplot")) {
+   install.packages("cowplot")
+   library(cowplot)
+}
+if (!require("latex2exp")) {
+   install.packages("latex2exp")
+   library(latex2exp)
+}
+if (!require("plotly")) {
+   install.packages("plotly")
+   library(plotly)
+}
+if (!require("gapminder")) {
+   install.packages("gapminder")
+   library(gapminder)
+}
+if (!require("png")) {
+    install.packages("png")             # Install png package
+    library("png")
+}
+if (!require("RCurl")) {
+    install.packages("RCurl")             # Install RCurl package
+    library("RCurl")
+}
+if (!require("colourpicker")) {
+    install.packages("colourpicker")              
+    library("colourpicker")
+}
+if (!require("gganimate")) {
+    install.packages("gganimate")              
+    library("gganimate")
+}
+if (!require("gifski")) {
+    install.packages("gifski")              
+    library("gifski")
+}
+if (!require("magick")) {
+    install.packages("magick")              
+    library("magick")
+}
+if (!require("grDevices")) {
+    install.packages("grDevices")              
+    library("grDevices")
+}
+if (!require("jpeg")) {
+    install.packages("jpeg")              
+    library("jpeg")
+}
+# knitr::opts_knit$set(root.dir = "C:/Users/75CPENG/OneDrive - West Chester University of PA/Documents")
+# knitr::opts_knit$set(root.dir = "C:\\STA490\\w05")
+##
+knitr::opts_chunk$set(echo = TRUE,       
+                      warning = FALSE,   
+                      result = TRUE,   
+                      message = FALSE)
+```
+
+# Data Management
+
+Read the two datasets from the repository on Github.
+<li>Extracted on year 2020 presidential election data.</li>
+<li>Only included Democrats and Republican party votes.</li>
+<li>Included variables: state_po, county_name, county_fips, party, candidatevotes.</li>
+<li>Merged the above dataset *election.final* with FIPS to Geocode Dataset *fips.code* using the FIPS as the primary key.</li>
+<br>
+```{r}
+
+election.data <- read.csv("https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/countypresidential_election_2000-2020.csv")
+fips.code <- read.csv("https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/fips2geocode.csv")
+
+election.2020 <- election.data %>%
+  filter( year == 2020 & (party == "DEMOCRAT" | party == "REPUBLICAN") ) %>%
+  mutate( votes.percent = round((candidatevotes/totalvotes)*100, 2) )
+  
+election.final <- election.2020 %>%
+  group_by( state_po, county_fips) %>%
+  summarise( highest.votespercent = max(votes.percent, na.rm = TRUE) )
+
+election.final <- merge( election.2020, election.final, by = "county_fips", all.x = FALSE)
+
+election.final <- election.final %>%
+  filter( votes.percent == highest.votespercent )
+
+election_fips <- merge(election.final, fips.code, by.x = "county_fips", by.y = "fips", all.x =                        FALSE)
+
+election_fips <- election_fips %>%
+  mutate( republican = ifelse(party == "REPUBLICAN", yes = 1, no = 0)) %>%
+  mutate(state = state_po.x, party_won = party) %>%
+  select(state, county_fips, county_name, party_won, candidatevotes, totalvotes, votes.percent,          republican, lat, lon)
+
+election_fips$county_fips <-  ifelse ((election_fips$county_fips < 10000),
+  yes = paste(0,election_fips$county_fips, sep = ""), no = election_fips$county_fips)
+
+saveRDS(election_fips, file="D:/OneDrive - West Chester University of PA/Documents/Spring'22/STA553-DataViz/git/Datasets/election_fips.RData")
+
+```
+
+# Choroleth map showing US Presidential Elections 2020 by county
+
+## Interactive Choropleth map using Plotly function
+
+<li>Created an interactive choropleth map to display the presidential election results at county level using two different colors to represent the two parties.</li>
+<br>
+```{r}
+
+url <- "https://github.com/pengdsci/sta553/raw/main/data/geojson-counties-fips.json"
+counties <- rjson::fromJSON(file=url)
+
+g <- list(scope = 'usa',
+          projection = list(type = 'albers usa'),
+          showlakes = TRUE,
+          lakecolor = toRGB('white'))
+
+fig <- plot_ly()  %>% 
+  add_trace( type = "choropleth",
+          geojson = counties,
+        locations = election_fips$county_fips,
+                z = election_fips$republican,
+           colors = c("blue","red"),
+             zmin = 0,
+             zmax = 1,
+             text = ~paste("<br>County: ", election_fips$county_name,
+                           "<br>Party won: ", election_fips$party,
+                           "<br>Winner votes percent: ", election_fips$votes.percent,
+                           "<br>Total votes: ", election_fips$totalvotes,
+                           "<br>State: ", election_fips$state),
+        hoverinfo = "text",
+           marker = list(line=list(width=0.3)))   %>% 
+  hide_colorbar() %>%
+  layout( title = list(text = "<b>US Presidential elections 2020 by County</b>",
+                       font = list(size = 20,
+                                   color = "darkred")),
+          margin = list( b = 15, l = 25, t = 85, r = 25),
+          geo = g)
+fig
+```
+
+## Interactive Choropleth map using Plotly function #2
+
+<li> This is another way to represent the US presidential election 2020 data by county. Created an interactive choropleth map to display the presidential election results at county level using the color palette to represent the votes percent for party.</li>
+<br>
+```{r}
+library("RColorBrewer")
+fig2 <- plot_ly()  %>% 
+  add_trace( type = "choropleth",
+          geojson = counties,
+        locations = election_fips$county_fips,
+                z = election_fips$votes.percent,
+       colorscale = "TealGrn",  
+             zmin = 0,
+             zmax = 100,
+             text = ~paste("<br>County: ", election_fips$county_name,
+                           "<br>Party won: ", election_fips$party,
+                           "<br>Winner votes percent: ", election_fips$votes.percent,
+                           "<br>Total votes: ", election_fips$totalvotes,
+                           "<br>State: ", election_fips$state),
+        hoverinfo = "text",
+           marker = list(line=list(width=0.3))) %>% 
+  colorbar(title = "Winner Votes percent(%)") %>% 
+  layout( title = list(text = "<b>US Presidential elections 2020 by County</b>",
+                       font = list(size = 20,
+                                   color = "darkred")),
+          margin = list( b = 15, l = 25, t = 85, r = 25),
+          geo = g)
+fig2
+```
+
+## Choropleth map using Tableau Public
+
+Using the Tableau, created the choropleth map as described in Part I of this assignment.
+<li>Created the map with Tableau and published it on Tableau's public server.</li>
+<li>Embeded the map into RMarkdown using the IMG tag from directly tableau public server link(hence embeded it to the knitted HTML file).</li>
+<li>The link for the visualization created in Tableau public is: <a href="https://public.tableau.com/views/USpresidentialelections2020/Sheet1?:language=en-US&:display_count=n&:origin=viz_share_link" target="_blank">click here</a> </li>
+<br>
+<img src= "https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Images/US_presidential_elections_2020.png"> </img>
+#<img src= "https://public.tableau.com/static/images/US/USpresidentialelections2020/Sheet1/1.png"> </img>
+<br>
+<br>
