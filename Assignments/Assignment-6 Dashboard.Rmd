@@ -1,0 +1,265 @@
+---
+title: "Assignment-6 Dashboard: Penguin Data Analysis"
+author: "Sai Vignesh Reddy Cholleti"
+output:
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(plotly)
+library(ggplot2)
+library(tidyverse)
+library(knitr)
+```
+
+
+```{r}
+pen.data = read.csv("https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/w02-penguins.csv", header = TRUE)
+
+x.choice = names(pen.data)[4:7]
+y.choice = names(pen.data)[4:7]
+```
+
+Column{.sidebar data-width=200}
+-----------------------------------------
+
+```{r}
+br()
+radioButtons(inputId = "species",
+             label = strong("Species"),
+             choices = c("Adelie",
+                         "Chinstrap",
+                         "Gentoo",
+                         "All"),
+             inline = FALSE,
+             selected = "All")
+
+hr()
+
+selectInput(inputId="Y",
+            label=strong("Response Variable: Y"),
+            choices=y.choice)
+selectInput(inputId="X",
+            label=strong("Predictor Variable: X"),
+            choices=x.choice,
+            selected=x.choice[2])
+numericInput(inputId="newX", 
+             label=strong("New Value for Prediction:"), 
+             value=15, 
+             min=1, 
+             max=6500)
+
+hr()
+      
+```
+
+<center><img src="https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Images/goldenRamLogo.png" width="80" height="80"></center>
+<p style="font-family:Courier; color:Red; font-size: 20px;"><center>
+                 <font size =2> <a href="mailto:sc946140@wcupa.edu">
+                 <font color="purple">Report bugs to Vignesh </font></a> </font></center> </p>
+
+```{r}
+workDat = function(dat){
+   if (input$species == "Adelie") {
+      workingData = pen.data[which(pen.data$species == "Adelie"),]
+      } else if (input$species == "Chinstrap") {
+         workingData = pen.data[which(pen.data$species == "Chinstrap"),]
+         } else if (input$species == "Gentoo") {
+            workingData = pen.data[which(pen.data$species == "Gentoo"),]
+            } else {
+               workingData = pen.data
+               }
+   workingData
+}
+```
+
+
+Column {.tabset .tabset-fade data-width=450}
+-------------------------------------------------------------------
+
+### **Interactive Scatter Plot**
+
+```{r}
+renderPlotly({
+   plot_ly(data = workDat(),
+           x =  ~workDat()[[input$X]], 
+           y =  ~workDat()[[input$Y]], 
+           color = ~workDat()$species,
+           hovertemplate = paste('<i><b>',input$Y,'<b></i>: %{y}',
+                                 '<br><b>',input$X,'</b>:  %{x}',
+                                 '<br><b>',input$species,'</b>'),
+           alpha  = 0.9,
+           #size = ~workDat()[[body_mass_g]]/2700,
+           type = "scatter",
+           mode = "markers")  %>%
+      layout(title = paste( input$X, "vs", input$Y),
+             plot_bgcolor = "#e5ecf6",
+             margin = list(l = 20, r = 20, b = 10, t = 40),
+             xaxis = list(title = paste(input$X)), 
+             yaxis = list(title = paste(input$Y)),
+             legend = list(title=list(text='<b> Species </b>'),
+                           orientation = "h",
+                           xanchor = "center",
+                           x = 0.5
+                           )
+             )
+   })
+
+```
+
+### **Regression plot**
+
+```{r}
+renderPlot({
+   regdata = workDat()
+   if (input$species == "All"){
+      m0 = lm(pen.data[[input$Y]]~pen.data[[input$X]])
+      plot(pen.data[[input$X]], pen.data[[input$Y]],
+           main = paste("Relationship between", input$Y, "and", input$X),
+           type = "p",
+           pch = 19,
+           col = "blue",
+           xlab = input$X,
+           ylab = input$Y
+           )
+      abline(m0, lwd = 2, col ="red")
+   } else {
+      m1 = lm(workDat()[[input$Y]]~workDat()[[input$X]])
+      plot(workDat()[[input$X]], workDat()[[input$Y]],
+           main = paste("Relationship between", input$Y, "and", input$X),
+           type = "p",
+           pch = 19,
+           col = "blue",
+           xlab = input$X,
+           ylab = input$Y
+      )
+      abline(m1, lwd = 2, col = "red")
+   }
+})
+```
+
+
+### **Model Equation**
+
+```{r}
+renderTable({
+   br()
+   br()
+   dataset = workDat(input$species)[,-1]
+   m0 = lm(dataset[,input$Y] ~ dataset[,input$X])
+   regcoef = data.frame(coef(summary(m0)))
+   regcoef$Pvalue = regcoef[,names(regcoef)[4]]
+   regcoef$Variable = c("Intercept", input$X)
+   regcoef[,c(6, 1:3, 5)]
+   })
+```
+
+### **Residual plots**
+
+```{r}
+renderPlot({
+   regdata = workDat()
+   if (input$species == "All"){
+      LM = lm(pen.data[[input$Y]]~pen.data[[input$X]])
+      } else {
+         LM = lm(workDat()[[input$Y]]~workDat()[[input$X]])
+         }
+   par(mfrow = c(2,2))
+   plot(LM)
+   })
+```
+
+### **Prediction**
+
+```{r}
+renderPlot({
+    dataset = workDat(input$species)[,-1]
+    m3 = lm(dataset[,input$Y] ~ dataset[,input$X])
+    pred.y = coef(m3)[1] + coef(m3)[2]*input$newX
+    plot(dataset[,input$X], dataset[,input$Y], 
+        xlab = input$X,
+        ylab = input$Y,
+        main = paste("Relationship between", input$Y, "and", input$X)
+       )
+     abline(m3,
+            col = "red",
+            lwd = 1,
+            lty=2)
+    points(input$newX, pred.y, pch = 19, col = "red", cex = 2)
+  })
+```
+
+
+
+Column {data-width=350}
+--------------------------------------
+
+### **Box plot showing the distribution of each species**
+
+```{r}
+
+renderPlot({
+   ggplot(data=workDat(), aes(x=workDat()$species, y=workDat()[[input$X]])) + 
+      geom_boxplot(aes(fill=workDat()$species)) +
+      ylab(input$X) +
+      xlab("Species") +
+      #ggtitle(paste("Boxplot of the response variable: ", input$X )) +
+      labs(fill = "Species") +
+      stat_summary(fun.y=mean, geom="point", shape=5, size=4)  
+})
+```
+
+### **Ridge Plot: Distribution of response variable Y**
+
+```{r}
+renderPlotly({
+  if(input$species == "All"){
+    bill.len.adelie <- pen.data[which(pen.data$species == "Adelie"),]
+    adelie <- density(bill.len.adelie$bill_length_mm, na.rm=TRUE)
+    bill.len.chinstrap <- pen.data[which(pen.data$species == "Chinstrap"),]
+    chinstrap <- density(bill.len.chinstrap$bill_length_mm, na.rm=TRUE)
+    bill.len.gentoo <- pen.data[which(pen.data$species == "Gentoo"),]
+    gentoo <- density(bill.len.gentoo$bill_length_mm, na.rm=TRUE)
+    # plot density curves
+    plot_ly(x = ~adelie$x, y = ~adelie$y, 
+               type = 'scatter', 
+               mode = 'lines', 
+               name = 'Adelie', 
+               fill = 'tozeroy')  %>% 
+           # adding more density curves
+       add_trace(x = ~chinstrap$x, 
+                 y = ~chinstrap$y, 
+                 name = 'Chinstrap', 
+                 fill = 'tozeroy')  %>% 
+       add_trace(x = ~gentoo$x, 
+                 y = ~gentoo$y, 
+                 name = 'Gentoo', 
+                 fill = 'tozeroy')  %>%   
+       layout(xaxis = list(title = paste(input$Y)),
+              yaxis = list(title = 'Density'))
+    } else {
+       den <- density(workDat()[[input$Y]], na.rm=TRUE)
+       plot_ly(x = ~den$x, 
+               y = ~den$y, 
+               color = ~input$species, 
+               type = 'scatter', 
+               mode = 'lines', 
+               name = input$species, 
+               fill = 'tozeroy') %>%
+          layout(xaxis = list(title = paste(input$Y)),
+                 yaxis = list(title = 'Density'))
+       }
+})
+
+hr()
+```
+
+
+
+
+

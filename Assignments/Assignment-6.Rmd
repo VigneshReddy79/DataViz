@@ -1,0 +1,320 @@
+---
+title: "Assignment-6"
+author: "Sai Vignesh Reddy Cholleti"
+date: "05/04/2022"
+output:
+  html_document: 
+    toc: yes
+    number_sections: yes
+  html_notebook:
+    toc: yes
+    number_sections: yes
+editor_options:
+  chunk_output_type: inline
+runtime: shiny
+---
+
+<style type="text/css">
+
+div#TOC li {
+    list-style:none;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+h1.title {
+  font-size: 24px;
+  color: DarkRed;
+  text-align: center;
+}
+h4.author { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkRed;
+  text-align: center;
+}
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+  text-align: center;
+}
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 15px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+</style>
+
+```{r setup, include=FALSE}
+if (!require("tidyverse")) {
+   install.packages("tidyverse")
+   library(tidyverse)
+}
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("cowplot")) {
+   install.packages("cowplot")
+   library(cowplot)
+}
+if (!require("latex2exp")) {
+   install.packages("latex2exp")
+   library(latex2exp)
+}
+if (!require("plotly")) {
+   install.packages("plotly")
+   library(plotly)
+}
+if (!require("gapminder")) {
+   install.packages("gapminder")
+   library(gapminder)
+}
+if (!require("png")) {
+    install.packages("png")             # Install png package
+    library("png")
+}
+if (!require("RCurl")) {
+    install.packages("RCurl")             # Install RCurl package
+    library("RCurl")
+}
+if (!require("colourpicker")) {
+    install.packages("colourpicker")              
+    library("colourpicker")
+}
+if (!require("gganimate")) {
+    install.packages("gganimate")              
+    library("gganimate")
+}
+if (!require("gifski")) {
+    install.packages("gifski")              
+    library("gifski")
+}
+if (!require("magick")) {
+    install.packages("magick")              
+    library("magick")
+}
+if (!require("grDevices")) {
+    install.packages("grDevices")              
+    library("grDevices")
+}
+if (!require("jpeg")) {
+    install.packages("jpeg")              
+    library("jpeg")
+}
+# knitr::opts_knit$set(root.dir = "C:/Users/75CPENG/OneDrive - West Chester University of PA/Documents")
+# knitr::opts_knit$set(root.dir = "C:\\STA490\\w05")
+##
+knitr::opts_chunk$set(echo = TRUE,       
+                      warning = FALSE,   
+                      result = TRUE,   
+                      message = FALSE)
+```
+
+
+```{r, include=FALSE}
+library(shiny)
+library(shinydashboard)
+```
+
+# Density of Gamma Distribution (part-1)
+
+<li> This visualization shows the Gamma distribution using R Shiny apps. </li>
+<li> The sidebar consists some options like selecting the sample size, the distribution shape ($\alpha$ value) and the distribution rate ($\beta$  value).</li>
+<li> The main panel contains the histogram showing the gamma distribution with selected sample size, shape and rate. </li>
+<br>
+
+```{r}
+
+ui <- fluidPage(
+  titlePanel("Simulating Gamma Distribution"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput(inputId = "n",
+                  label = "Sample size (n)",
+                  min = 1,
+                  max = 500,
+                  value = 10,
+                  step = 5),
+      sliderInput(inputId = "alpha",
+                  label = "Gamma distribution shape (alpha)",
+                  min = 0,
+                  max = 20,
+                  value = 1,
+                  step = 0.5),
+      sliderInput(inputId = "beta",
+                  label = "Gamma distribution rate (beta)",
+                  min = 0,
+                  max = 20,
+                  value = 1,
+                  step = 0.5)
+      ),
+    mainPanel(plotOutput(outputId = "distPlot"))
+    )
+)
+
+server <- function(input, output) {
+  output$distPlot <- renderPlot({
+    gamma.plot <- rgamma(n=input$n, shape=input$alpha, rate=input$beta)
+    hist(gamma.plot, col = "skyblue", border = "black",
+         xlab = "Histogram of generated gamma data",
+         main = "Simulated Gamma Distribution")
+  })
+}
+
+shinyApp(ui = ui, server = server)
+
+```
+
+# Data Analysis using RShiny apps (part-2)
+
+<li> The penguin dataset is used for analysing the data using R Shiny apps. </li>
+<li> The sidebar contains the options for different species from the penguin data and drop down menu for numerical variables. </li>
+<li> The main panel consists multiple plots in the tabset design. Each tab represnts a different plot. </li>
+<li> The four plots included are:
+<ol>
+<li> Scatter plot showing the relationship between the selected response and independent variables. </li>
+<li> The Table showing the regression model coefficients. </li>
+<li> The Residual plots showing the residual data distributions.</li>
+<li> The Prediction scatter plot showing the predicted value of response variable for selected value of independent variable </li> 
+</ol>
+<br>
+
+```{r}
+
+pen.data = read.csv("https://raw.githubusercontent.com/VigneshReddy79/STA553-DataViz/main/Datasets/w02-penguins.csv", header = TRUE)
+x.choice = names(pen.data)[4:7]
+y.choice = names(pen.data)[4:7]
+
+ui <- fluidPage(
+  titlePanel(h4("Analysis of Penguin Data", 
+                align = "center", style = "color:navy", br())),
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons(inputId = "species", 
+                   label = "Species",
+                   choices = c("Adelie","Chinstrap","Gentoo","All"),
+                   inline = FALSE,
+                   selected = "All"),
+      br(),
+      selectInput(inputId="Y",
+                  label="Response Variable: Y",
+                  choices=y.choice),
+      selectInput(inputId="X",
+                  label="Predictor Variable: X",
+                  choices=x.choice,
+                  selected=x.choice[2]),
+      hr(),
+      numericInput(inputId = "newX", 
+                   label = "New Value for Prediction:",
+                   value=15, 
+                   min=1, 
+                   max=6500)
+      ),
+    mainPanel(
+      tabsetPanel(type = "tabs",
+                  tabPanel("Scatter Plot", plotOutput("plot")),
+                  tabPanel("Regression Coefficients", tableOutput("table")),
+                  tabPanel("Diagnostics",plotOutput("diagnosis")),
+                  tabPanel("Prediction", plotOutput("predPlt"))
+                  )
+      )
+    )
+  )
+
+server <- function(input, output) {
+  workDat = function(dat){
+    if (input$species == "Adelie") {
+      workingData = pen.data[which(pen.data$species == "Adelie"),]
+      } else if (input$species == "Chinstrap") {
+        workingData = pen.data[which(pen.data$species == "Chinstrap"),]
+        } else if (input$species == "Gentoo") {
+          workingData = pen.data[which(pen.data$species == "Gentoo"),]
+          } else {
+            workingData = pen.data
+            }
+    workingData
+  }
+
+output$plot <- renderPlot({
+  dataset = workDat(input$species)[,-1]
+  plot(dataset[,input$X], dataset[,input$Y], 
+       xlab = input$X,
+       ylab = input$Y,
+       main = paste("Relationship between", input$Y, "and", input$X)
+       )
+  abline(lm(dataset[,input$Y] ~ dataset[,input$X]),
+         col = "blue",
+         lwd = 2)
+  })
+  
+output$table <- renderTable({
+  br()
+  br()
+  dataset = workDat(input$species)[,-1]
+  m0 = lm(dataset[,input$Y] ~ dataset[,input$X])
+  regcoef = data.frame(coef(summary(m0)))
+  regcoef$Pvalue = regcoef[,names(regcoef)[4]]
+  regcoef$Variable = c("Intercept", input$X)
+  regcoef[,c(6, 1:3, 5)]
+  })
+
+output$diagnosis <- renderPlot({
+  dataset = workDat(input$species)[,-1]
+  m1=lm(dataset[,input$Y] ~ dataset[,input$X])
+  par(mfrow=c(2,2))
+  plot(m1)
+  })   
+
+output$predPlt <- renderPlot({
+  dataset = workDat(input$species)[,-1]
+  m3 = lm(dataset[,input$Y] ~ dataset[,input$X])
+  pred.y = coef(m3)[1] + coef(m3)[2]*input$newX
+  plot(dataset[,input$X], dataset[,input$Y], 
+       xlab = input$X,
+       ylab = input$Y,
+       main = paste("Relationship between", input$Y, "and", input$X)
+       )
+  abline(m3,col = "red",lwd = 1,lty=2)
+  points(input$newX, pred.y, pch = 19, col = "red", cex = 2)
+})
+}
+
+shinyApp(ui = ui, server = server)
+
+```
+
+
+# Dashboard using RShiny apps (part-3)
+
+<li> This part of Assignment includes the creation of dashboard by using R Shiny apps. This Dashboard is created by using flex dashboard package within R packages. </li>
+<li> The layout employed for this dashboard is multiple column and Input sidebar layout. The sidebar consists some of the options like specifying species, selecting numerical variable to obtain relationship between them and reporting issues. </li>
+<li> The multiple column layout is choosen for the main panel. This Main panel consists all the required plots and figures. Some of the plots like Box plots and Ridge plots are used to display the distribution of response variable in each species. </li>
+<li>To visit the web application for the R Shiny Dashboard created on shinyapps.io <a href="https://vigneshreddy79.shinyapps.io/Assignment-6_Dashboard/?_ga=2.245578884.1077581212.1651643745-1697144491.1643820914" target="_blank"> Click here! <a> </li>
+
+<br>
+<br>
+
+
