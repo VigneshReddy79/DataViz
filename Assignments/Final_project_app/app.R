@@ -62,7 +62,7 @@ ui <- fluidPage(
                          max=18800,
                          step=0.5)
         ),
-        mainPanel( width = 9, height = 1200,
+        mainPanel( width = 6,
             tabsetPanel(type = "tabs",
                         tabPanel("1.Scatter Plot", plotlyOutput("plotly"), textOutput("plotly_txt")),
                         tabPanel("2.Stats by Clarity", textOutput("stats_clarity_txt"), plotlyOutput("stats_clarity")),
